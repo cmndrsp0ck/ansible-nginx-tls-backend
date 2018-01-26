@@ -1,0 +1,25 @@
+galaxy_info:
+  author: cmndrsp0ck
+  description: Configure Nginx with a TLS certificate on a DigitalOcean Droplet listening on the private interface.
+  company: N/A
+
+  license: license (GPLv2, CC-BY, etc)
+
+  min_ansible_version: 2.4
+
+  github_branch: master
+
+  platforms:
+    - name: Debian
+      versions:
+      - stretch
+    - name: Ubuntu
+      versions:
+      - xenial
+
+  galaxy_tags:
+    - nginx
+    - TLS
+    - DigitalOcean
+
+dependencies: []

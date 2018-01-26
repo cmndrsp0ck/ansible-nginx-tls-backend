@@ -1,0 +1,11 @@
+---
+# defaults file for nginx_backend
+# sites:
+#   example1:
+#     doc_root: /var/www/html/example.com
+#     server_name: example.com
+
+# Set a name for the directory holding site content e.g. files/example.com/
+nginx_sync_files: "example.com"
+tls_cert: "example.crt"
+tls_key: "example.key"

@@ -1,0 +1,30 @@
+server {
+	listen {{ ansible_eth1.ipv4.address }}:443 ssl;
+
+	access_log /var/log/nginx/access.log;
+
+	root {{ item.value.doc_root }};
+	index index.html index.htm;
+
+	server_name {{ item.value.server_name }};
+
+	ssl on;
+	ssl_session_cache shared:SSL:5m;
+	ssl_session_timeout 5m;
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+	ssl_prefer_server_ciphers on;
+	ssl_certificate /etc/nginx/tls-cert/{{ tls_cert }};
+	ssl_certificate_key /etc/nginx/tls-cert/{{ tls_key }};
+
+	location ~ \.(jpe?g|png|gif|ico|woff2?|css|svg)$ {
+		open_file_cache max=100 inactive=86400s;
+		open_file_cache_valid 10s;
+		open_file_cache_min_uses 5;
+		open_file_cache_errors off;
+	}
+
+	location / {
+
+	}
+}

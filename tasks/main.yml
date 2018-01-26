@@ -1,0 +1,112 @@
+---
+- name: install nginx component
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - nginx
+    - rsync
+
+# Import tasks to set user limits.
+- name: import user and sysctl limits
+  import_tasks: sysctl.yml
+
+- name: Create override file for nginx systemd service
+  file:
+    path: /etc/systemd/system/nginx.service.d
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: Copy override.conf for nginx.service
+  copy:
+    dest: /etc/systemd/system/nginx.service.d/
+    src: override.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: daemon reload
+  systemd:
+    daemon_reload: yes
+
+- name: Create directory for TLS cert
+  file:
+    path: /etc/nginx/tls-cert
+    owner: root
+    group: root
+    mode: 0644
+    state: directory
+
+- name: Copy TLS certificate over
+  copy:
+    dest: /etc/nginx/tls-cert/
+    src: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0600
+    decrypt: Yes
+  with_items:
+    - "{{ tls_cert }}"
+    - "{{ tls_key }}"
+
+- name: configure nginx service
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: 0644
+  notify: restart nginx
+
+- name: get active sites
+  shell: ls -1 /etc/nginx/sites-enabled
+  register: active
+
+- name: disable unwanted sites
+  file:
+    path: /etc/nginx/sites-enabled/{{ item }}
+    state: absent
+  with_items: "{{ active.stdout_lines }}"
+  when: item not in sites
+  notify: restart nginx
+
+- name: create doc roots
+  file:
+    path: "{{ item.value.doc_root }}"
+    state: directory
+    mode: 0755
+    owner: www-data
+    group: www-data
+  with_dict: "{{ sites }}"
+
+- name: Copy site over to destination host
+  synchronize:
+    src: "{{ nginx_sync_files}}/"
+    dest: "{{ item.value.doc_root }}"
+    recursive: yes
+  with_dict: "{{ sites }}"
+
+- name: change ownership of file to www-data
+  shell: |
+    chown -R www-data:www-data "{{ item.value.doc_root }}";
+    find "{{ item.value.doc_root }}" -type d -exec chmod 755 {} \;
+    find "{{ item.value.doc_root }}" -type f -exec chmod 644 {} \;
+  with_dict: "{{ sites }}"
+
+- name: configure server block
+  template:
+    src: backend_server_block.j2
+    dest: "/etc/nginx/sites-available/{{ item.key }}"
+    mode: 0644
+  with_dict: "{{ sites }}"
+  notify: restart nginx
+
+- name: enable new site
+  file:
+    src: /etc/nginx/sites-available/{{ item.key }}
+    dest: /etc/nginx/sites-enabled/{{ item.key }}
+    state: link
+  with_dict: "{{ sites }}"
+  notify: restart nginx
