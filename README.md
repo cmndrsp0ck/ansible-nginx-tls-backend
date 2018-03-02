@@ -1,4 +1,4 @@
-nginx-backend
+ansible-nginx-tls-backend
 =========
 Configure nginx backends on DigitalOcean Droplets that are configured to listen on the private network (eth1)
 
@@ -38,13 +38,13 @@ Example Playbook
 
 or
 
-    ansible-galaxy install cmndrsp0ck.nginx443-backend
+    ansible-galaxy install cmndrsp0ck.ansible-nginx-tls-backend
 
 Once it's installed in your **roles** directory, you can use the following in your playbook.
 
     - hosts: web_node
       roles:
-         - { role: cmndrsp0ck.nginx443-backend }
+         - { role: cmndrsp0ck.ansible-nginx-tls-backend }
       become: True
 
 License
