@@ -3,7 +3,7 @@ galaxy_info:
   description: Configure Nginx with a TLS certificate on a DigitalOcean Droplet listening on the private interface.
   company: N/A
 
-  license: license (GPLv2, CC-BY, etc)
+  license: GPL-3.0
 
   min_ansible_version: 2.4
 
